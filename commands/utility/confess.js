@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 
 // >>> This creates a random ID for the user who typed the confession <<<
-function generateConfessionId() {
+function generateRandomId() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = '';
     for (let i = 0; i < 4; i++) {
@@ -17,22 +17,26 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    await interaction.deferReply({  flags: MessageFlags.Ephemeral }); // to only show thinking to user, saving identity from being exposed
+    const channelId = '1434469166609596528';
+    const channelToSend = await interaction.client.channels.fetch(channelId);
+
+    await interaction.deferReply({  flags: MessageFlags.Ephemeral }); // >> to only show thinking to user, saving identity from being exposed
 
     const confessionText = interaction.options.getString('confession');
-    // creating the embed
+    // >> creating the embed
     const confessionEmbed = new EmbedBuilder()
-      .setColor('#FF69B4')
-      .setTitle('𝜗ৎ Sneaky Confession 💗')
+      .setColor('#FFD1DC')
+      .setTitle(`⤿ 💌 Sweet Confession ❤︎ ${generateRandomId()}  𐔌՞. .՞𐦯`)
       .setDescription(`> ${confessionText}`)
+      .setThumbnail('https://i.pinimg.com/736x/96/a0/2f/96a02f88d85e785ff171ee6229e75a56.jpg')
       .setFooter({
-        text: `🤍 You are strong and brave - ${generateConfessionId()}  ૮₍ ˶• ༝ •˶ ₎ა`
+        text: `🌸 Proud Of You For Sharing, Take Care 𖹭  ⏔⏔⏔ ꒰ ᧔ෆ᧓ ꒱ ⏔⏔⏔`
       })
 
-    await interaction.channel.send({ // sends the embed in the channel the command was used on
+    await channelToSend.send({ // >> sends the embed in the confessions/venting channel
       embeds: [confessionEmbed]
     });
 
-    await interaction.deleteReply(); // deletes the deferred reply
+    await interaction.deleteReply(); // >> deletes the deferred reply
   }
 }
