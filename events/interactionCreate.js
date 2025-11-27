@@ -1,9 +1,9 @@
-const { Events, MessageFlags } = require('discord.js'); // MessageFlags are special markers that tell discord how to treat messages
+const { Events, MessageFlags, Collection } = require('discord.js');
 
 module.exports = {
-	name: Events.InteractionCreate, // tell which event the file is for
+	name: Events.InteractionCreate,
 	async execute(interaction) {
-		if (!interaction.isChatInputCommand()) return; // discard anything that isnt chat-input command simply not a slash command
+		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);
 
@@ -12,8 +12,35 @@ module.exports = {
 			return;
 		}
 
+		// add cooldowns
+		const { cooldowns } = interaction.client;
+
+		if (!cooldowns.has(command.data.name)) {
+			cooldowns.set(command.data.name, new Collection());
+		}
+
+		const now = Date.now();
+		const timestamps = cooldowns.get(command.data.name);
+		const defaultCooldownDuration = 3;
+		const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1_000;
+
+		if (timestamps.has(interaction.user.id)) {
+			const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+
+			if (now < expirationTime) {
+				const expiredTimestamp = Math.round(expirationTime / 1_000);
+				return interaction.reply({
+					content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`,
+					flags: MessageFlags.Ephemeral,
+				});
+			}
+		}
+
 		try {
-			await command.execute(interaction); // interaction variable sends info about the action of the user like what he just did
+			await command.execute(interaction);
+
+			timestamps.set(interaction.user.id, now);
+			setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 		} catch (error) {
 			console.error(error);
 			if (interaction.replied || interaction.deferred) {
