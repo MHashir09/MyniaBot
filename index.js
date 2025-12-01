@@ -9,6 +9,7 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 // >>> This part handles commands <<<
 client.commands = new Collection(); // makes a collection to store all the commands by keys(names) and values
+client.cooldowns = new Collection();
 const foldersPath = path.join(__dirname, 'commands'); // builds the path to this folder
 const commandFolders = fs.readdirSync(foldersPath); // returns the folder/files in this path
 
@@ -22,7 +23,8 @@ for (const folder of commandFolders) {
 		// Set a new item in the Collection as the exported module
 		if ('data' in command && 'execute' in command) {
 			client.commands.set(command.data.name, command);
-		} else {
+		}
+		else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
 	}
@@ -37,7 +39,8 @@ for (const file of eventFiles) {
 	const event = require(filePath);
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args)); // (...args) is simply whatever argument discord sends and ... unpacks those values and passes them as separate arguments to the execute function
-	} else {
+	}
+	else {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
